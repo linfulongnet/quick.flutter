@@ -208,8 +208,12 @@ class _MyAppState extends State<MyApp> {
             var data = Uint8List.fromList(utf8.encode(''));
             var endpoint = _configuration!.interfaces[0].endpoints
                 .firstWhere((e) => e.direction == UsbEndpoint.DIRECTION_OUT);
-            var bulkTransferOut =
-                await QuickUsb.bulkTransferOut(endpoint, data);
+            var bulkTransferOut = await QuickUsb.bulkTransferOut(
+              endpoint,
+              data,
+              autoZlp: false,
+              forceZlp: false,
+            );
             log('bulkTransferOut $bulkTransferOut');
           },
         ),

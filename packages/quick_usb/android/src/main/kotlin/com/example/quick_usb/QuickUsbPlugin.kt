@@ -198,6 +198,8 @@ class QuickUsbPlugin : FlutterPlugin, MethodCallHandler {
         val endpointMap = call.argument<Map<String, Any>>("endpoint")!!
         val data = call.argument<ByteArray>("data")!!
         val timeout = call.argument<Int>("timeout")!!
+        val autoZlp = call.argument<Boolean>("autoZlp") ?: false
+        val forceZlp = call.argument<Boolean>("forceZlp") ?: false
         val endpoint =
           device.findEndpoint(endpointMap["endpointNumber"] as Int, endpointMap["direction"] as Int)
 
@@ -214,6 +216,14 @@ class QuickUsbPlugin : FlutterPlugin, MethodCallHandler {
         if (sum == null) {
           result.error("unknown", "bulkTransferOut error", null)
         } else {
+          // Determine if ZLP should be sent
+          val shouldSendZlp = forceZlp || (autoZlp && data.isNotEmpty() && endpoint != null && endpoint.maxPacketSize > 0 && sum == data.size && data.size % endpoint.maxPacketSize == 0)
+          if (shouldSendZlp && endpoint != null) {
+            val zlpLength = connection.bulkTransfer(endpoint, ByteArray(0), 0, timeout)
+            if (zlpLength < 0) {
+              return result.error("unknown", "bulkTransferOut zlp error", null)
+            }
+          }
           result.success(sum)
         }
       }

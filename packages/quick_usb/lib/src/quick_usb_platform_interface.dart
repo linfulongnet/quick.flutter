@@ -56,7 +56,7 @@ abstract class QuickUsbPlatform extends PlatformInterface {
       UsbEndpoint endpoint, int maxLength, int timeout);
 
   Future<int> bulkTransferOut(
-      UsbEndpoint endpoint, Uint8List data, int timeout);
+      UsbEndpoint endpoint, Uint8List data, int timeout, bool autoZlp, bool forceZlp);
 
   Future<void> setAutoDetachKernelDriver(bool enable);
 }

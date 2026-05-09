@@ -116,7 +116,13 @@ print('releaseInterface $releaseInterface');
 var bulkTransferIn = await QuickUsb.bulkTransferIn(endpoint, 1024, timeout: 2000);
 print('bulkTransferIn ${hex.encode(bulkTransferIn)}');
 // ...
-var bulkTransferOut = await QuickUsb.bulkTransferOut(endpoint, data, timeout: 2000);
+var bulkTransferOut = await QuickUsb.bulkTransferOut(
+  endpoint,
+  data,
+  timeout: 2000,
+  autoZlp: false, // default false, auto send ZLP when data length is multiple of max packet size
+  forceZlp: false, // default false, force send ZLP regardless of data length
+);
 print('bulkTransferOut $bulkTransferOut');
 ```
 

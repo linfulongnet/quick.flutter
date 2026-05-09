@@ -309,7 +309,7 @@ class _QuickUsbDesktop extends QuickUsbPlatform {
 
   @override
   Future<int> bulkTransferOut(
-      UsbEndpoint endpoint, Uint8List data, int timemout) async {
+      UsbEndpoint endpoint, Uint8List data, int timemout, bool autoZlp, bool forceZlp) async {
     assert(_devHandle != null, 'Device not open');
     assert(endpoint.direction == UsbEndpoint.DIRECTION_OUT,
         'Endpoint\'s direction should be out');

@@ -65,8 +65,8 @@ class QuickUsb {
       _platform.bulkTransferIn(endpoint, maxLength, timeout);
 
   static Future<int> bulkTransferOut(UsbEndpoint endpoint, Uint8List data,
-          {int timeout = 1000}) =>
-      _platform.bulkTransferOut(endpoint, data, timeout);
+          {int timeout = 1000, bool autoZlp = false, bool forceZlp = false}) =>
+      _platform.bulkTransferOut(endpoint, data, timeout, autoZlp, forceZlp);
 
   static Future<void> setAutoDetachKernelDriver(bool enable) =>
       _platform.setAutoDetachKernelDriver(enable);

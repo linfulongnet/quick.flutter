@@ -125,7 +125,7 @@ class QuickUsbAndroid extends QuickUsbPlatform {
 
   @override
   Future<int> bulkTransferOut(
-      UsbEndpoint endpoint, Uint8List data, int timeout) async {
+      UsbEndpoint endpoint, Uint8List data, int timeout, bool autoZlp, bool forceZlp) async {
     assert(endpoint.direction == UsbEndpoint.DIRECTION_OUT,
         'Endpoint\'s direction should be out');
 
@@ -133,6 +133,8 @@ class QuickUsbAndroid extends QuickUsbPlatform {
       'endpoint': endpoint.toMap(),
       'data': data,
       'timeout': timeout,
+      'autoZlp': autoZlp,
+      'forceZlp': forceZlp,
     });
   }
 
