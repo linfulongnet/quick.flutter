@@ -1,3 +1,7 @@
+## 1.0.0
+
+- Add `autoZlp` and `forceZlp` parameters to `bulkTransferOut` for ZLP compliance
+
 ## 0.4.0
 
 - Fix `requestPermission` compatibility below Android 11
