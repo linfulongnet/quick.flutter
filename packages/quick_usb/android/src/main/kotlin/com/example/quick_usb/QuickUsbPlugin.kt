@@ -9,6 +9,7 @@ import android.hardware.usb.*
 import android.os.Build
 import androidx.annotation.NonNull
 import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
@@ -26,27 +27,79 @@ private val pendingIntentFlag =
 private fun pendingPermissionIntent(context: Context) = PendingIntent.getBroadcast(context, 0, Intent(ACTION_USB_PERMISSION), pendingIntentFlag)
 
 /** QuickUsbPlugin */
-class QuickUsbPlugin : FlutterPlugin, MethodCallHandler {
+class QuickUsbPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHandler {
   /// The MethodChannel that will the communication between Flutter and native Android
   ///
   /// This local reference serves to register the plugin with the Flutter Engine and unregister it
   /// when the Flutter Engine is detached from the Activity
   private lateinit var channel: MethodChannel
+  private lateinit var eventChannel: EventChannel
 
   private var applicationContext: Context? = null
   private var usbManager: UsbManager? = null
+  private var eventSink: EventChannel.EventSink? = null
+  private var usbReceiverRegistered = false
+
+  private val usbReceiver = object : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+      val device = intent.getParcelableExtra<UsbDevice>(UsbManager.EXTRA_DEVICE) ?: return
+      val eventType = when (intent.action) {
+        UsbManager.ACTION_USB_DEVICE_ATTACHED -> "attached"
+        UsbManager.ACTION_USB_DEVICE_DETACHED -> "detached"
+        else -> return
+      }
+      eventSink?.success(
+        mapOf(
+          "type" to eventType,
+          "device" to mapOf(
+            "identifier" to device.deviceName,
+            "vendorId" to device.vendorId,
+            "productId" to device.productId,
+            "configurationCount" to device.configurationCount,
+          ),
+        )
+      )
+    }
+  }
 
   override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
     channel = MethodChannel(flutterPluginBinding.binaryMessenger, "quick_usb")
     channel.setMethodCallHandler(this)
+
+    eventChannel = EventChannel(flutterPluginBinding.binaryMessenger, "quick_usb/event.usbDeviceEvent")
+    eventChannel.setStreamHandler(this)
+
     applicationContext = flutterPluginBinding.applicationContext
     usbManager = applicationContext?.getSystemService(Context.USB_SERVICE) as UsbManager
   }
 
   override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
     channel.setMethodCallHandler(null)
+    eventChannel.setStreamHandler(null)
+    if (usbReceiverRegistered) {
+      applicationContext?.unregisterReceiver(usbReceiver)
+      usbReceiverRegistered = false
+    }
     usbManager = null
     applicationContext = null
+  }
+
+  override fun onListen(arguments: Any?, events: EventChannel.EventSink) {
+    eventSink = events
+    val filter = IntentFilter().apply {
+      addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED)
+      addAction(UsbManager.ACTION_USB_DEVICE_DETACHED)
+    }
+    applicationContext?.registerReceiver(usbReceiver, filter)
+    usbReceiverRegistered = true
+  }
+
+  override fun onCancel(arguments: Any?) {
+    eventSink = null
+    if (usbReceiverRegistered) {
+      applicationContext?.unregisterReceiver(usbReceiver)
+      usbReceiverRegistered = false
+    }
   }
 
   private var usbDevice: UsbDevice? = null
