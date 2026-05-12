@@ -6,6 +6,9 @@ import 'package:quick_usb/src/common.dart';
 import 'package:quick_usb/src/quick_usb_platform_interface.dart';
 
 const MethodChannel _channel = MethodChannel('quick_usb');
+const EventChannel _eventChannel = EventChannel(
+  'quick_usb/event.usbDeviceEvent',
+);
 
 class QuickUsbAndroid extends QuickUsbPlatform {
   // For example/.dart_tool/flutter_build/generated_main.dart
@@ -25,7 +28,9 @@ class QuickUsbAndroid extends QuickUsbPlatform {
 
   @override
   Future<List<UsbDevice>> getDeviceList() async {
-    List<Map<dynamic, dynamic>> devices = (await _channel.invokeListMethod('getDeviceList'))!;
+    List<Map<dynamic, dynamic>> devices = (await _channel.invokeListMethod(
+      'getDeviceList',
+    ))!;
     return devices.map((device) => UsbDevice.fromMap(device)).toList();
   }
 
@@ -36,10 +41,12 @@ class QuickUsbAndroid extends QuickUsbPlatform {
     var devices = await getDeviceList();
     var result = <UsbDeviceDescription>[];
     for (var device in devices) {
-      result.add(await getDeviceDescription(
-        device,
-        requestPermission: requestPermission,
-      ));
+      result.add(
+        await getDeviceDescription(
+          device,
+          requestPermission: requestPermission,
+        ),
+      );
     }
     return result;
   }
@@ -83,9 +90,7 @@ class QuickUsbAndroid extends QuickUsbPlatform {
 
   @override
   Future<UsbConfiguration> getConfiguration(int index) async {
-    var map = await _channel.invokeMethod('getConfiguration', {
-      'index': index,
-    });
+    var map = await _channel.invokeMethod('getConfiguration', {'index': index});
     return UsbConfiguration.fromMap(map);
   }
 
@@ -111,9 +116,14 @@ class QuickUsbAndroid extends QuickUsbPlatform {
 
   @override
   Future<Uint8List> bulkTransferIn(
-      UsbEndpoint endpoint, int maxLength, int timeout) async {
-    assert(endpoint.direction == UsbEndpoint.DIRECTION_IN,
-        'Endpoint\'s direction should be in');
+    UsbEndpoint endpoint,
+    int maxLength,
+    int timeout,
+  ) async {
+    assert(
+      endpoint.direction == UsbEndpoint.DIRECTION_IN,
+      'Endpoint\'s direction should be in',
+    );
 
     List<dynamic> data = await _channel.invokeMethod('bulkTransferIn', {
       'endpoint': endpoint.toMap(),
@@ -125,9 +135,16 @@ class QuickUsbAndroid extends QuickUsbPlatform {
 
   @override
   Future<int> bulkTransferOut(
-      UsbEndpoint endpoint, Uint8List data, int timeout, bool autoZlp, bool forceZlp) async {
-    assert(endpoint.direction == UsbEndpoint.DIRECTION_OUT,
-        'Endpoint\'s direction should be out');
+    UsbEndpoint endpoint,
+    Uint8List data,
+    int timeout,
+    bool autoZlp,
+    bool forceZlp,
+  ) async {
+    assert(
+      endpoint.direction == UsbEndpoint.DIRECTION_OUT,
+      'Endpoint\'s direction should be out',
+    );
 
     return await _channel.invokeMethod('bulkTransferOut', {
       'endpoint': endpoint.toMap(),
@@ -140,4 +157,10 @@ class QuickUsbAndroid extends QuickUsbPlatform {
 
   @override
   Future<void> setAutoDetachKernelDriver(bool enable) async {}
+
+  @override
+  Stream<UsbDeviceEvent> get onUsbDeviceEvent =>
+      _eventChannel.receiveBroadcastStream().map((event) {
+        return UsbDeviceEvent.fromMap(event as Map<dynamic, dynamic>);
+      });
 }

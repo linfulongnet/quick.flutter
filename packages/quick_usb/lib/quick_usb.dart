@@ -28,11 +28,10 @@ class QuickUsb {
   static Future<UsbDeviceDescription> getDeviceDescription(
     UsbDevice usbDevice, {
     bool requestPermission = true,
-  }) =>
-      _platform.getDeviceDescription(
-        usbDevice,
-        requestPermission: requestPermission,
-      );
+  }) => _platform.getDeviceDescription(
+    usbDevice,
+    requestPermission: requestPermission,
+  );
 
   static Future<bool> hasPermission(UsbDevice usbDevice) =>
       _platform.hasPermission(usbDevice);
@@ -60,14 +59,23 @@ class QuickUsb {
   static Future<bool> releaseInterface(UsbInterface intf) =>
       _platform.releaseInterface(intf);
 
-  static Future<Uint8List> bulkTransferIn(UsbEndpoint endpoint, int maxLength,
-          {int timeout = 1000}) =>
-      _platform.bulkTransferIn(endpoint, maxLength, timeout);
+  static Future<Uint8List> bulkTransferIn(
+    UsbEndpoint endpoint,
+    int maxLength, {
+    int timeout = 1000,
+  }) => _platform.bulkTransferIn(endpoint, maxLength, timeout);
 
-  static Future<int> bulkTransferOut(UsbEndpoint endpoint, Uint8List data,
-          {int timeout = 1000, bool autoZlp = false, bool forceZlp = false}) =>
-      _platform.bulkTransferOut(endpoint, data, timeout, autoZlp, forceZlp);
+  static Future<int> bulkTransferOut(
+    UsbEndpoint endpoint,
+    Uint8List data, {
+    int timeout = 1000,
+    bool autoZlp = false,
+    bool forceZlp = false,
+  }) => _platform.bulkTransferOut(endpoint, data, timeout, autoZlp, forceZlp);
 
   static Future<void> setAutoDetachKernelDriver(bool enable) =>
       _platform.setAutoDetachKernelDriver(enable);
+
+  static late final Stream<UsbDeviceEvent> onUsbDeviceEvent =
+      _platform.onUsbDeviceEvent;
 }

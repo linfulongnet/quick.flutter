@@ -1,5 +1,28 @@
 // ignore_for_file: constant_identifier_names
 
+enum UsbDeviceEventType { attached, detached }
+
+class UsbDeviceEvent {
+  final UsbDeviceEventType type;
+  final UsbDevice device;
+
+  UsbDeviceEvent({required this.type, required this.device});
+
+  factory UsbDeviceEvent.fromMap(Map<dynamic, dynamic> map) {
+    return UsbDeviceEvent(
+      type: UsbDeviceEventType.values.byName(map['type']),
+      device: UsbDevice.fromMap(map['device']),
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {'type': type.name, 'device': device.toMap()};
+  }
+
+  @override
+  String toString() => toMap().toString();
+}
+
 class UsbDevice {
   final String identifier;
   final int vendorId;
@@ -81,8 +104,9 @@ class UsbInterface {
   });
 
   factory UsbInterface.fromMap(Map<dynamic, dynamic> map) {
-    var endpoints =
-        (map['endpoints'] as List).map((e) => UsbEndpoint.fromMap(e)).toList();
+    var endpoints = (map['endpoints'] as List)
+        .map((e) => UsbEndpoint.fromMap(e))
+        .toList();
     return UsbInterface(
       id: map['id'],
       alternateSetting: map['alternateSetting'],
@@ -117,10 +141,7 @@ class UsbEndpoint {
   final int endpointNumber;
   final int direction;
 
-  UsbEndpoint({
-    required this.endpointNumber,
-    required this.direction,
-  });
+  UsbEndpoint({required this.endpointNumber, required this.direction});
 
   factory UsbEndpoint.fromMap(Map<dynamic, dynamic> map) {
     return UsbEndpoint(
@@ -132,10 +153,7 @@ class UsbEndpoint {
   int get endpointAddress => endpointNumber | direction;
 
   Map<String, dynamic> toMap() {
-    return {
-      'endpointNumber': endpointNumber,
-      'direction': direction,
-    };
+    return {'endpointNumber': endpointNumber, 'direction': direction};
   }
 
   @override
