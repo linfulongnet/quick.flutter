@@ -1,3 +1,8 @@
+## 1.1.0
+
+- Add `onUsbDeviceEvent` stream for USB device hotplug monitoring (Android)
+- Add `UsbDeviceEventType` enum and `UsbDeviceEvent` class
+
 ## 1.0.0
 
 - Add `autoZlp` and `forceZlp` parameters to `bulkTransferOut` for ZLP compliance
